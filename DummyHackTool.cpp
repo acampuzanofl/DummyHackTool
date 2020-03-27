@@ -113,7 +113,7 @@ void writeInt(DWORD pid, DWORD lpBaseAddress)
 	std::cout << "Enter Value to Overwrite: ";
 	std::cin >> std::dec >> writeValue;
 
-	//read memory
+	//write memory
 	if (!WriteProcessMemory(hProcess, (LPVOID)lpBaseAddress, &writeValue, sizeof(writeValue), NULL)) { std::cout << "error in writting memory: " << GetLastError() << std::endl; return; }
 	std::cout << "Overwrite Succesful ";
 
@@ -138,8 +138,11 @@ void writeString(DWORD pid, DWORD lpBaseAddress)
 	std::cout << "Enter Value to Overwrite: ";
 	std::cin >> writeValue;
 
-	//read memory
-	if (!WriteProcessMemory(hProcess, (LPVOID)lpBaseAddress, &writeValue, sizeof(writeValue), NULL)) { std::cout << "error in writting memory: " << GetLastError() << std::endl; return; }
+	for (int offset = 0; offset < writeValue.size(); offset++)
+	{
+		//write memory
+		if (!WriteProcessMemory(hProcess, (LPVOID)(lpBaseAddress + offset), &writeValue[offset], sizeof(char), NULL)) { std::cout << "error in writting memory: " << GetLastError() << std::endl; return; }
+	}
 	std::cout << "Overwrite Succesful ";
 
 
