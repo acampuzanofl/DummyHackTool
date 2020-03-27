@@ -1,6 +1,21 @@
 #include <windows.h>
 #include <iostream>
 
+DWORD getPID()
+{
+	int pid;
+		while (true)
+		{
+			std::cout << "Enter Process ID: ";
+			std::cin >> pid;
+			HANDLE isProcess = OpenProcess(PROCESS_VM_READ, false, pid);
+			if (isProcess) { CloseHandle(isProcess); std::cin.ignore(INT_MAX, '\n'); break; }
+			std::cout << "Invalid process ID." << std::endl;
+			std::cin.clear();
+			std::cin.ignore(INT_MAX,'\n');
+		}
+	return (DWORD)pid;
+}
 
 DWORD scanInt( DWORD pid)
 {
@@ -15,6 +30,7 @@ DWORD scanInt( DWORD pid)
 	//input address for scan
 	std::cout << "Enter Address: ";
 	std::cin >> std::hex >> lpBaseAddress;
+	if (std::cin.fail()) { std::cin.clear(); std::cin.ignore(MAXDWORD, '\n'); }
 
 	//read memory
 	if (!ReadProcessMemory(hProcess, (LPCVOID)lpBaseAddress, &readValue, sizeof(readValue), NULL)) { std::cout << "error in reading memory: " << GetLastError() << std::endl; return 0; }
@@ -45,6 +61,7 @@ DWORD scanString( DWORD pid )
 	//input address for scan
 	std::cout << "Enter Address: ";
 	std::cin >> std::hex >> lpBaseAddress;
+	if (std::cin.fail()) { std::cin.clear(); std::cin.ignore(MAXDWORD, '\n'); }
 
 	//read memory, check for valid characters, terminate on invalid character
 	for (int offset = 0; offset < STRING_MAX_SCAN; offset++)
@@ -84,6 +101,7 @@ DWORD scanPointer(DWORD pid)
 	//input address for scan
 	std::cout << "Enter Address: ";
 	std::cin >> std::hex >> lpBaseAddress;
+	if (std::cin.fail()) { std::cin.clear(); std::cin.ignore(MAXDWORD, '\n'); }
 
 	//read memory
 	if (!ReadProcessMemory(hProcess, (LPCVOID)lpBaseAddress, &readValue, sizeof(readValue), NULL)) { std::cout << "error in reading memory: " << GetLastError() << std::endl; return 0; }
@@ -112,6 +130,7 @@ void writeInt(DWORD pid, DWORD lpBaseAddress)
 	//input value for overwrite
 	std::cout << "Enter Value to Overwrite: ";
 	std::cin >> std::dec >> writeValue;
+	if (std::cin.fail()) { std::cin.clear(); std::cin.ignore(INT_MAX, '\n'); }
 
 	//write memory
 	if (!WriteProcessMemory(hProcess, (LPVOID)lpBaseAddress, &writeValue, sizeof(writeValue), NULL)) { std::cout << "error in writting memory: " << GetLastError() << std::endl; return; }
@@ -136,7 +155,7 @@ void writeString(DWORD pid, DWORD lpBaseAddress)
 
 	//input value for overwrite
 	std::cout << "Enter Value to Overwrite: ";
-	std::cin >> writeValue;
+	std::cin >> std::noskipws >> writeValue;
 
 	for (int offset = 0; offset < writeValue.size(); offset++)
 	{
@@ -155,12 +174,12 @@ void writeString(DWORD pid, DWORD lpBaseAddress)
 
 int main()
 {	
-	//init process id 
-	DWORD pid = 0;
+
 	DWORD lpBaseAddress = 0;
 	char userAnswer = 0;
-	std::cout << "Enter Process ID: ";
-	std::cin >> pid >> std::hex;
+
+	//attach to process
+	DWORD pid = getPID();
 
 	while (true)
 	{
@@ -173,26 +192,32 @@ int main()
 		switch (scanType)
 		{
 			case 1:
+				std::cin.ignore(INT_MAX, '\n');
 				std::cout << "Int Scan\n";
 				lpBaseAddress = scanInt(pid);
 				std::cout << "Would you like to overwrite this value (y/n)? ";
 				std::cin >> userAnswer;
-				if (userAnswer == 'y') { writeInt(pid, lpBaseAddress); }
+				if (userAnswer == 'y' || userAnswer == 'Y') { std::cin.ignore(CHAR_MAX, '\n'); writeInt(pid, lpBaseAddress); }
+				std::cin.ignore(CHAR_MAX, '\n');
 				break;
 			case 2:
+				std::cin.ignore(INT_MAX, '\n');
 				std::cout << "String Scan\n";
 				lpBaseAddress = scanString(pid);
 				std::cout << "Would you like to overwrite this value (y/n)? ";
 				std::cin >> userAnswer;
-				if (userAnswer == 'y') { writeString(pid, lpBaseAddress); }
+				if (userAnswer == 'y' || userAnswer == 'Y') { std::cin.ignore(CHAR_MAX, '\n');  writeString(pid, lpBaseAddress); }
+				std::cin.ignore(CHAR_MAX, '\n');
 				break;
 			case 3:
+				std::cin.ignore(INT_MAX, '\n');
 				std::cout << "Pointer Scan\n";
 				lpBaseAddress = scanPointer(pid);
 				break;
 			default:
-				std::cout << "Not an valid option\n";
-				return EXIT_FAILURE;
+				std::cout << "Not a valid option\n";
+				std::cin.clear();
+				std::cin.ignore(INT_MAX, '\n');
 		}
 
 	}
