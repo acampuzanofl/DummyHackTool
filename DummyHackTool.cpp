@@ -172,10 +172,16 @@ int main()
 			case 1:
 				std::cout << "Int Scan\n";
 				lpBaseAddress = scanInt(pid);
+				std::cout << "Would you like to overwrite this value (y/n)? ";
+				std::cin >> userAnswer;
+				if (userAnswer == 'y') { writeInt(pid, lpBaseAddress); }
 				break;
 			case 2:
 				std::cout << "String Scan\n";
 				lpBaseAddress = scanString(pid);
+				std::cout << "Would you like to overwrite this value (y/n)? ";
+				std::cin >> userAnswer;
+				if (userAnswer == 'y') { writeString(pid, lpBaseAddress); }
 				break;
 			case 3:
 				std::cout << "Pointer Scan\n";
@@ -185,9 +191,7 @@ int main()
 				std::cout << "Not an valid option\n";
 				return EXIT_FAILURE;
 		}
-		std::cout << "Would you like to overwrite this value (y/n)? ";
-		std::cin >> userAnswer;
-		if ( userAnswer == 'y' ) { writeInt(pid, lpBaseAddress); }
+
 	}
 }
 	
